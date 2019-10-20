@@ -4,7 +4,7 @@ Perceptron:
 Takes in inputs, gives each input weight, and handles output of sum through activation function
 
 Input A (12) --- (weight 0.5)
-Input B (6) --- weight -1 
+Input B (6) --- weight -1
 === f(4) => [does something in activation function] => res of f(4)
 
 Can give bias also(ie add 1 to value)
@@ -91,3 +91,9 @@ Calculates error contribution of each neuron after processing data.
 Relies on chain rule to go back through the network.
 
 Requires known desired output for each input (supervised learning).
+
+### Terms
+
+- Placeholder: empty node that needs value to be provided to compute output.
+- Variables: Changeable paramter of Graph
+- Graph: Global Variable connecting variables and placeholders to operations.
