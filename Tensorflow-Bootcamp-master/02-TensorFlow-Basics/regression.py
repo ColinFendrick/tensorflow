@@ -11,6 +11,7 @@ noise = np.random.randn(len(x_data))
 # y = mx+b + noise
 b = 5
 
+# The actual value of the line
 y_true = (0.5 * x_data) + 5 + noise
 my_data = pd.concat([pd.DataFrame(data=x_data, columns=['X Data']),
                      pd.DataFrame(data=y_true, columns=['Y'])], axis=1)
@@ -43,8 +44,9 @@ init = tf.global_variables_initializer()
 
 with tf.Session() as sess:
     sess.run(init)
-    batches = 1000
+    batches = 10000
     for i in range(batches):
+        # Creates random index for the 8 points I'm using in each batch
         rand_ind = np.random.randint(len(x_data), size=batch_size)
 
         feed = {xph: x_data[rand_ind], yph: y_true[rand_ind]}
@@ -54,21 +56,28 @@ with tf.Session() as sess:
 
     print(model_m, model_b)
 
-    #  Results
+    #  Results visualizer
     y_hat = x_data + model_m + model_b
     my_data.sample(n=250).plot(kind='scatter', x='X Data', y='Y')
     plt.plot(x_data, y_hat, 'r')
     plt.show()
 
-#  TF Estimator API
+# TF Estimator API
+# Define feature cols
 feat_cols = [tf.feature_column.numeric_column('x', shape=[1])]
+# Estimator model
 estimator = tf.estimator.LinearRegressor(feature_columns=feat_cols)
+# Split test/train
 x_train, x_eval, y_train, y_eval = train_test_split(
     x_data, y_true, test_size=0.3, random_state=101)
 
+# 70%
 print(x_train.shape)
+# 70%
 print(y_train.shape)
+# 30%
 print(x_eval.shape)
+# 30 %
 print(y_eval.shape)
 
 #  Estimator inputs
@@ -92,9 +101,11 @@ print('train metrics: {}'.format(train_metrics))
 print('eval metrics: {}'.format(eval_metrics))
 
 # Predictions
+brand_new_data = np.linspace(0, 10, 10)
 input_fn_predict = tf.estimator.inputs.numpy_input_fn(
-    {'x': np.linspace(0, 10, 10)}, shuffle=False)
+    {'x': brand_new_data}, shuffle=False)
 
+# Cast the results to a list
 list(estimator.predict(input_fn=input_fn_predict))
 predictions = []
 
@@ -103,6 +114,7 @@ for x in estimator.predict(input_fn=input_fn_predict):
 
 print(predictions)
 
+# How good is the prediction?
 my_data.sample(n=250).plot(kind='scatter', x='X Data', y='Y')
-plt.plot(np.linspace(0, 10, 10), predictions, 'r')
+plt.plot(brand_new_data, predictions, 'r')
 plt.show()
