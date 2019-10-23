@@ -90,3 +90,19 @@ eval_metrics = estimator.evaluate(input_fn=eval_input_func, steps=1000)
 
 print('train metrics: {}'.format(train_metrics))
 print('eval metrics: {}'.format(eval_metrics))
+
+# Predictions
+input_fn_predict = tf.estimator.inputs.numpy_input_fn(
+    {'x': np.linspace(0, 10, 10)}, shuffle=False)
+
+list(estimator.predict(input_fn=input_fn_predict))
+predictions = []
+
+for x in estimator.predict(input_fn=input_fn_predict):
+    predictions.append(x['predictions'])
+
+print(predictions)
+
+my_data.sample(n=250).plot(kind='scatter', x='X Data', y='Y')
+plt.plot(np.linspace(0, 10, 10), predictions, 'r')
+plt.show()
