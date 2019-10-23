@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 # 1 Million Points
 x_data = np.linspace(0.0, 10.0, 1000000)
@@ -58,3 +59,34 @@ with tf.Session() as sess:
     my_data.sample(n=250).plot(kind='scatter', x='X Data', y='Y')
     plt.plot(x_data, y_hat, 'r')
     plt.show()
+
+#  TF Estimator API
+feat_cols = [tf.feature_column.numeric_column('x', shape=[1])]
+estimator = tf.estimator.LinearRegressor(feature_columns=feat_cols)
+x_train, x_eval, y_train, y_eval = train_test_split(
+    x_data, y_true, test_size=0.3, random_state=101)
+
+print(x_train.shape)
+print(y_train.shape)
+print(x_eval.shape)
+print(y_eval.shape)
+
+#  Estimator inputs
+input_func = tf.estimator.inputs.numpy_input_fn(
+    {'x': x_train}, y_train, batch_size=4, num_epochs=None, shuffle=True)
+
+train_input_func = tf.estimator.inputs.numpy_input_fn(
+    {'x': x_train}, y_train, batch_size=4, num_epochs=1000, shuffle=False)
+
+eval_input_func = tf.estimator.inputs.numpy_input_fn(
+    {'x': x_eval}, y_eval, batch_size=4, num_epochs=1000, shuffle=False)
+
+# Train the estimator
+estimator.train(input_fn=input_func, steps=1000)
+
+# Evaluation
+train_metrics = estimator.evaluate(input_fn=train_input_func, steps=1000)
+eval_metrics = estimator.evaluate(input_fn=eval_input_func, steps=1000)
+
+print('train metrics: {}'.format(train_metrics))
+print('eval metrics: {}'.format(eval_metrics))
