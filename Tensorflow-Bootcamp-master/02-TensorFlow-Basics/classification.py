@@ -1,6 +1,7 @@
 import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 
 diabetes = pd.read_csv('pima-indians-diabetes.csv')
 print(diabetes.head())
@@ -48,3 +49,14 @@ plt.show()
 
 age_buckets = tf.feature_column.bucketized_column(
     age, boundaries=[20, 30, 40, 50, 60, 70, 80])
+feat_cols = [num_preg, plasma_gluc, dias_press, tricep, insulin,
+             bmi, diabetes_pedigree, assigned_group, age_buckets]
+
+x_data = diabetes.drop('Class', axis=1)
+labels = diabetes['Class']
+X_train, X_test, y_train, y_test = train_test_split(
+    x_data, labels, test_size=0.33, random_state=101)
+
+#  Input function
+input_func = tf.estimator.inputs.pandas_input_fn(
+    x=X_train, y=y_train, batch_size=10, num_epochs=1000, shuffle=True)
