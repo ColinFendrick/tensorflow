@@ -1,6 +1,7 @@
-Tensorflow-Bootcamp-master/**/
-!Tensorflow-Bootcamp-master/00*/
-!Tensorflow-Bootcamp-master/01*/
-!Tensorflow-Bootcamp-master/02*/
-!Tensorflow-Bootcamp-master/02*/new_models/
-Tensorflow-Bootcamp-master/02*/new_models/*.*
+tensorflow/**/
+!tensorflow/00*/
+!tensorflow/01*/
+!tensorflow/02*/
+!tensorflow/02*/new_models/
+tensorflow/02*/new_models/*.*
+!tensorflow/03*/
