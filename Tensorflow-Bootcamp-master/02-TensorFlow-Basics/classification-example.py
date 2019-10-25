@@ -2,11 +2,18 @@ import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 
 census = pd.read_csv('census_data.csv')
 
 # We have to convert our label to strings
-census['income_bracket'].apply(lambda label: int(label == ' <=50K'))
+def label_fix(label):
+    if label == ' <=50K':
+        return 0
+    else:
+        return 1
+
+census['income_bracket'] = census['income_bracket'].apply(label_fix)
 
 # Drop the label, use it in labels, and make a test/train split
 x_data = census.drop('income_bracket', axis=1)
@@ -41,8 +48,20 @@ feat_cols = [gender, occupation, marital_status, relationship, education, workcl
 
 # Input func
 input_func = tf.estimator.inputs.pandas_input_fn(
-    x=X_train, y=y_train, batch_size=400, num_epochs=None, shuffle=True)
+    x=X_train, y=y_train, batch_size=100, num_epochs=None, shuffle=True)
 
 # Model
 model = tf.estimator.LinearClassifier(feature_columns=feat_cols)
 model.train(input_fn=input_func, steps=5000)
+
+# Evaluate
+pred_func = tf.estimator.inputs.pandas_input_fn(
+    x=X_test, batch_size=len(X_test), shuffle=False)
+
+predictions = list(model.predict(input_fn=pred_func))
+
+final_preds = []
+for pred in predictions:
+    final_preds.append(pred['class_ids'][0])
+
+print(classification_report(y_test, final_preds))
