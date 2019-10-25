@@ -24,26 +24,46 @@ train = optimizer.minimize(error)
 # Initialize variables
 init = tf.global_variables_initializer()
 
-# SAVING MODEL
+### SAVING MODEL ###
 saver = tf.train.Saver()
 
 with tf.Session() as sess:
     sess.run(init)
     epochs = 100
-    
+
     for i in range(epochs):
         sess.run(train)
-    
+
     # Final results of regression
     final_slope, final_intercept = sess.run([m, b])
-    
+
     # ONCE THIS IS DONE IT MUST GET SAVED
     saver.save(sess, 'new_models/my_second_model.ckpt')
 
-# EVALUATE
-x_test = np.linspace(-1, 11, 10)
-y_pred_plot = final_slope*x_test + final_intercept
+    # EVALUATE
+    x_test = np.linspace(-1, 11, 10)
+    y_pred_plot = final_slope*x_test + final_intercept
 
-plt.plot(x_test, y_pred_plot, 'r')
-plt.plot(x_data, y_label, '*')
-plt.show()
+    plt.plot(x_test, y_pred_plot, 'r')
+    plt.plot(x_data, y_label, '*')
+    plt.show()
+
+
+#
+### LOADING ###
+#
+
+with tf.Session() as sess:
+    # Restore
+    saver.restore(sess, 'new_models/my_second_model.ckpt')
+
+    # Fetch results
+    restored_slope, restored_intercept = sess.run([m, b])
+
+    # Do literally the same thing as above except with restored model
+    x_test = np.linspace(-1, 11, 10)
+    y_pred_plot = restored_slope*x_test + restored_intercept
+
+    plt.plot(x_test, y_pred_plot, 'r')
+    plt.plot(x_data, y_label, '*')
+    plt.show()
