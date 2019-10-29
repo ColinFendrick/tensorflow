@@ -170,3 +170,33 @@ full_one_dropout = tf.nn.dropout(full_layer_one, keep_prob=hold_prob)
 
 # Pass dropout layer to our pred
 y_pred = normal_full_layer(full_one_dropout, 10)
+
+# Loss fn
+cross_entropy = tf.reduce_mean(
+    tf.nn.softmax_cross_entropy_with_logits(labels=y_true, logits=y_pred))
+
+# Optimizer
+optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+train = optimizer.minimize(cross_entropy)
+
+init = tf.global_variables_initializer()
+
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+
+    for i in range(5000):
+        batch = ch.next_batch(100)
+        sess.run(train, feed_dict={
+                 x: batch[0], y_true: batch[1], hold_prob: 0.5})
+
+        if i % 100 == 0:
+            print('Currently on step {}'.format(i))
+            print('Accuracy is:')
+            # Test the Train Model
+            matches = tf.equal(tf.argmax(y_pred, 1), tf.argmax(y_true, 1))
+
+            acc = tf.reduce_mean(tf.cast(matches, tf.float32))
+
+            print(sess.run(acc, feed_dict={
+                  x: ch.test_images, y_true: ch.test_labels, hold_prob: 1.0}))
+            print('\n')
