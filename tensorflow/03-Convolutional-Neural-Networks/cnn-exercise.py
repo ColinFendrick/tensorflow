@@ -4,6 +4,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import tensorflow as tf
 
 CIFAR_DIR = 'cifar-10-batches-py/'
 
@@ -59,6 +60,39 @@ def one_hot_encode(vector, vals=10):
     return out
 
 
+# Helper functions from mnist project
+
+def init_weights(shape):
+    init_random_dist = tf.truncated_normal(shape, stddev=0.1)
+    return tf.Variable(init_random_dist)
+
+
+def init_bias(shape):
+    init_bias_vals = tf.constant(0.1, shape=shape)
+    return tf.Variable(init_bias_vals)
+
+
+def conv2d(x, W):
+    return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
+
+
+def max_pool_2by2(x):
+    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+
+
+def convolutional_layer(input_x, shape):
+    W = init_weights(shape)
+    b = init_bias([shape[3]])
+    return tf.nn.relu(conv2d(input_x, W) + b)
+
+
+def normal_full_layer(input_layer, size):
+    input_size = int(input_layer.get_shape()[1])
+    W = init_weights([input_size, size])
+    b = init_bias([size])
+    return tf.matmul(input_layer, W) + b
+
+
 class CifarHelper():
     def __init__(self):
         self.i = 0
@@ -101,12 +135,38 @@ class CifarHelper():
     def next_batch(self, batch_size=100):
         # The 100 dimension in the reshape call is set by an assumed batch size of 100
         x = self.training_images[self.i:self.i +
-            batch_size].reshape(batch_size, 32, 32, 3)
+                                 batch_size].reshape(batch_size, 32, 32, 3)
         y = self.training_labels[self.i:self.i+batch_size]
         self.i = (self.i + batch_size) % len(self.training_images)
         return x, y
+
 
 ch = CifarHelper()
 ch.set_up_images()
 
 batch = ch.next_batch(100)
+
+# Creating the model
+
+x = tf.placeholder(tf.float32, shape=[None, 32, 32, 3])
+y_true = tf.placeholder(tf.float32, shape=[None, 10])
+hold_prob = tf.placeholder(tf.float32)
+
+# Layers
+convo_1 = convolutional_layer(x, shape=[4, 4, 3, 32])
+convo_1_pooling = max_pool_2by2(convo_1)
+
+convo_2 = convolutional_layer(convo_1_pooling, shape=[4, 4, 32, 64])
+convo_2_pooling = max_pool_2by2(convo_2)
+
+# Create a flattened layer by reshaping the pool into [-1, 8*8*64]
+convo_2_flat = tf.reshape(convo_2_pooling, [-1, 8*8*64])
+
+# New full layer
+full_layer_one = tf.nn.relu(normal_full_layer(convo_2_flat, 1024))
+
+# Create the dropout layer
+full_one_dropout = tf.nn.dropout(full_layer_one, keep_prob=hold_prob)
+
+# Pass dropout layer to our pred
+y_pred = normal_full_layer(full_one_dropout, 10)
