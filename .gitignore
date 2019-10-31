@@ -7,3 +7,4 @@ tensorflow/02*/new_models/*.*
 !tensorflow/03*/
 !tensorflow/03*/MNIST_data/
 !tensorflow/03*/cifar-10-batches-py/
+!tensorflow/04*/
