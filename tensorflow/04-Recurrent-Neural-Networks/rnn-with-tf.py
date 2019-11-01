@@ -150,9 +150,9 @@ with tf.Session() as sess:
 # Generating new sequences
 
 with tf.Session() as sess:
-    saver.restore(sess, './rnn_time_series_model')
+    saver.restore(sess, "./rnn_time_series_model")
 
-    # SEED WITH ZEROS
+    # SEED WITH zeros
     zero_seq_seed = [0. for i in range(num_time_steps)]
     for iteration in range(len(ts_data.x_data) - num_time_steps):
         X_batch = np.array(
@@ -162,7 +162,24 @@ with tf.Session() as sess:
 
     plt.plot(ts_data.x_data, zero_seq_seed, "b-")
     plt.plot(ts_data.x_data[:num_time_steps],
-            zero_seq_seed[:num_time_steps], "r", linewidth=3)
+             zero_seq_seed[:num_time_steps], "r", linewidth=3)
     plt.xlabel("Time")
     plt.ylabel("Value")
+    plt.show()
+
+with tf.Session() as sess:
+    saver.restore(sess, './rnn_time_series_model')
+
+    # SEED WITH training instance
+    training_instance = list(ts_data.y_true[:30])
+    for iteration in range(len(training_instance) - num_time_steps):
+        X_batch = np.array(
+            training_instance[-num_time_steps:]).reshape(1, num_time_steps, 1)
+        y_pred = sess.run(outputs, feed_dict={X: X_batch})
+        training_instance.append(y_pred[0, -1, 0])
+
+    plt.plot(ts_data.x_data, ts_data.y_true, "b-")
+    plt.plot(ts_data.x_data[:num_time_steps],
+            training_instance[:num_time_steps], "r-", linewidth=3)
+    plt.xlabel("Time")
     plt.show()
