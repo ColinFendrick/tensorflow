@@ -58,9 +58,9 @@ train_inst = np.linspace(5, 5 + ts_data.resolution *
 
 plt.title('A Training Instance', fontsize=14)
 plt.plot(train_inst[:-1], ts_data.ret_true(train_inst[:-1]),
-        'bo', markersize=15, alpha=0.5, label='instance')
+         'bo', markersize=15, alpha=0.5, label='instance')
 plt.plot(train_inst[1:], ts_data.ret_true(train_inst[1:]),
-        'ko', markersize=7, label='target')
+         'ko', markersize=7, label='target')
 plt.show()
 
 # Creating the model
@@ -68,11 +68,11 @@ plt.show()
 tf.reset_default_graph()
 
 # Constants
-num_inputs = 1 # Just the time series feature
+num_inputs = 1  # Just the time series feature
 num_neurons = 100
-num_outputs = 1 # Just the predicted time series
+num_outputs = 1  # Just the predicted time series
 learning_rate = 0.0001
-num_train_iterations = 2000 # How many iterations ie training steps
+num_train_iterations = 2000  # How many iterations ie training steps
 batch_size = 1
 
 X = tf.placeholder(tf.float32, [None, num_time_steps, num_inputs])
@@ -125,24 +125,44 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 with tf.Session() as sess:
     saver.restore(sess, './rnn_time_series_model')
 
-    X_new = np.sin(np.array(train_inst[:-1].reshape(-1, num_time_steps, num_inputs)))
+    X_new = np.sin(
+        np.array(train_inst[:-1].reshape(-1, num_time_steps, num_inputs)))
     y_pred = sess.run(outputs, feed_dict={X: X_new})
 
     plt.title('Testing Model')
     # Training Instance
     plt.plot(train_inst[:-1], np.sin(train_inst[:-1]), "bo",
-            markersize=15, alpha=0.5, label="Training Instance")
+             markersize=15, alpha=0.5, label="Training Instance")
 
     # Target to Predict
     plt.plot(train_inst[1:], np.sin(train_inst[1:]),
-            "ko", markersize=10, label="target")
+             "ko", markersize=10, label="target")
 
     # Models Prediction
     plt.plot(train_inst[1:], y_pred[0, :, 0], "r.",
-            markersize=10, label="prediction")
+             markersize=10, label="prediction")
 
     plt.xlabel("Time")
     plt.legend()
     plt.tight_layout()
     plt.show()
 
+# Generating new sequences
+
+with tf.Session() as sess:
+    saver.restore(sess, './rnn_time_series_model')
+
+    # SEED WITH ZEROS
+    zero_seq_seed = [0. for i in range(num_time_steps)]
+    for iteration in range(len(ts_data.x_data) - num_time_steps):
+        X_batch = np.array(
+            zero_seq_seed[-num_time_steps:]).reshape(1, num_time_steps, 1)
+        y_pred = sess.run(outputs, feed_dict={X: X_batch})
+        zero_seq_seed.append(y_pred[0, -1, 0])
+
+    plt.plot(ts_data.x_data, zero_seq_seed, "b-")
+    plt.plot(ts_data.x_data[:num_time_steps],
+            zero_seq_seed[:num_time_steps], "r", linewidth=3)
+    plt.xlabel("Time")
+    plt.ylabel("Value")
+    plt.show()
