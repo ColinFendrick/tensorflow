@@ -79,8 +79,8 @@ X = tf.placeholder(tf.float32, [None, num_time_steps, num_inputs])
 y = tf.placeholder(tf.float32, [None, num_time_steps, num_outputs])
 
 # Recurrent Neural Network Cell Layer
-cell = tf.contrib.run.OutputProjectionWrapper(
-    tf.contrib.rnn.BasicRNNCell(num_unit=num_neurons, activation=tf.nn.relu),
+cell = tf.contrib.rnn.OutputProjectionWrapper(
+    tf.contrib.rnn.BasicRNNCell(num_units=num_neurons, activation=tf.nn.relu),
     output_size=num_outputs)
 
 # A few other cell varities
@@ -106,7 +106,7 @@ train = optimizer.minimize(loss)
 
 init = tf.global_variables_initializer()
 
-saver - tf.train.Saver()
+saver = tf.train.Saver()
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.75)
 with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
     sess.run(init)
@@ -119,3 +119,30 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
             print(iteration, '\tMSE:', mse)
 
     saver.save(sess, './rnn_time_series_model')
+
+# Predicting time series t+1
+
+with tf.Session() as sess:
+    saver.restore(sess, './rnn_time_series_model')
+
+    X_new = np.sin(np.array(train_inst[:-1].reshape(-1, num_time_steps, num_inputs)))
+    y_pred = sess.run(outputs, feed_dict={X: X_new})
+
+    plt.title('Testing Model')
+    # Training Instance
+    plt.plot(train_inst[:-1], np.sin(train_inst[:-1]), "bo",
+            markersize=15, alpha=0.5, label="Training Instance")
+
+    # Target to Predict
+    plt.plot(train_inst[1:], np.sin(train_inst[1:]),
+            "ko", markersize=10, label="target")
+
+    # Models Prediction
+    plt.plot(train_inst[1:], y_pred[0, :, 0], "r.",
+            markersize=10, label="prediction")
+
+    plt.xlabel("Time")
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
