@@ -20,8 +20,7 @@ class TimeSeriesData():
         # Grab a random starting point for each batch
         rand_start = np.random.rand(batch_size, 1)
         # Convert to be on time series
-        ts_start = rand_start * \
-            (self.xmax - self.xmin - (steps*self.resolution))
+        ts_start = rand_start * (self.xmax - self.xmin - (steps*self.resolution))
         # Create batch Time Series on t axis
         batch_ts = ts_start + np.arange(0.0, steps+1) * self.resolution
         # Create Y data for time series in the batches
@@ -54,7 +53,7 @@ plt.show()
 
 # We are attempting to predict a time series shifted over by t+1
 train_inst = np.linspace(5, 5 + ts_data.resolution *
-                         (num_time_steps + 1), num_time_steps + 1)
+                         (num_time_steps + 1), num_time_steps+1)
 
 plt.title('A Training Instance', fontsize=14)
 plt.plot(train_inst[:-1], ts_data.ret_true(train_inst[:-1]),
@@ -113,39 +112,43 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 
     for iteration in range(num_train_iterations):
         X_batch, y_batch = ts_data.next_batch(batch_size, num_time_steps)
+        sess.run(train, feed_dict={X: X_batch, y: y_batch})
 
         if iteration % 100 == 0:
-            mse = loss.eval(feed_dict={X: X_batch, y: y_batch})
-            print(iteration, '\tMSE:', mse)
 
-    saver.save(sess, './rnn_time_series_model')
+            mse = loss.eval(feed_dict={X: X_batch, y: y_batch})
+            print(iteration, "\tMSE:", mse)
+
+    # Save Model for Later
+    saver.save(sess, "./rnn_time_series_model")
 
 # Predicting time series t+1
 
 with tf.Session() as sess:
-    saver.restore(sess, './rnn_time_series_model')
+    saver.restore(sess, "./rnn_time_series_model")
 
     X_new = np.sin(
         np.array(train_inst[:-1].reshape(-1, num_time_steps, num_inputs)))
     y_pred = sess.run(outputs, feed_dict={X: X_new})
 
-    plt.title('Testing Model')
-    # Training Instance
-    plt.plot(train_inst[:-1], np.sin(train_inst[:-1]), "bo",
-             markersize=15, alpha=0.5, label="Training Instance")
+plt.title("Testing Model")
 
-    # Target to Predict
-    plt.plot(train_inst[1:], np.sin(train_inst[1:]),
-             "ko", markersize=10, label="target")
+# Training Instance
+plt.plot(train_inst[:-1], np.sin(train_inst[:-1]), "bo",
+         markersize=15, alpha=0.5, label="Training Instance")
 
-    # Models Prediction
-    plt.plot(train_inst[1:], y_pred[0, :, 0], "r.",
-             markersize=10, label="prediction")
+# Target to Predict
+plt.plot(train_inst[1:], np.sin(train_inst[1:]),
+         "ko", markersize=10, label="target")
 
-    plt.xlabel("Time")
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
+# Models Prediction
+plt.plot(train_inst[1:], y_pred[0, :, 0], "r.",
+         markersize=10, label="prediction")
+
+plt.xlabel("Time")
+plt.legend()
+plt.tight_layout()
+plt.show()
 
 # Generating new sequences
 
@@ -172,13 +175,13 @@ with tf.Session() as sess:
 
     # SEED WITH training instance
     training_instance = list(ts_data.y_true[:30])
-    for iteration in range(len(training_instance) - num_time_steps):
+    for iteration in range(len(ts_data.x_data) - num_time_steps):
         X_batch = np.array(
             training_instance[-num_time_steps:]).reshape(1, num_time_steps, 1)
         y_pred = sess.run(outputs, feed_dict={X: X_batch})
         training_instance.append(y_pred[0, -1, 0])
 
-    plt.plot(ts_data.x_data, ts_data.y_true, "b-")
+    plt.plot(ts_data.x_data, training_instance, "b-")
     plt.plot(ts_data.x_data[:num_time_steps],
             training_instance[:num_time_steps], "r-", linewidth=3)
     plt.xlabel("Time")
