@@ -6,6 +6,7 @@ num_inputs = 2
 num_neurons = 3
 
 # Two placeholders for each time stamp
+# This obviously won't scale, since we'd have to do this for every time stamp (usually thousands)
 x0 = tf.placeholder(tf.float32, [None, num_inputs])
 x1 = tf.placeholder(tf.float32, [None, num_inputs])
 
@@ -16,6 +17,7 @@ Wy = tf.Variable(tf.random_normal(shape=[num_neurons, num_neurons]))
 b = tf.Variable(tf.zeros([1, num_neurons]))
 
 # Graphs
+# Again this has to be done twice, once for each timestamp
 y0 = tf.tanh(tf.matmul(x0, Wx) + b)
 y1 = tf.tanh(tf.matmul(y0, Wy) + tf.matmul(x1, Wx) + b)
 
@@ -24,8 +26,8 @@ init = tf.global_variables_initializer()
 # Create the data
 # Batch 0: example1, example2, example3
 x0_batch = np.array([[0, 1], [2, 3], [4, 5]])  # Data at timestamp 0
-x1_batch = np.array([[100, 101], [102, 103], [104, 105]]
-                    )  # Data at timestamp 1
+x1_batch = np.array([
+    [100, 101], [102, 103], [104, 105]])  # Data at timestamp 1
 
 with tf.Session() as sess:
     sess.run(init)
