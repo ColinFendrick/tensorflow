@@ -162,7 +162,7 @@ gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.9)
 
 # Usually needs to be quite large to get good results,
 # training takes a long time!
-num_steps = 200001
+num_steps = 5000
 
 with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
     sess.run(init)
