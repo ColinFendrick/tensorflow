@@ -7,6 +7,7 @@ import zipfile
 import numpy as np
 from six.moves import urllib
 from six.moves import xrange
+from sklearn.manifold import TSNE
 from collections import Counter
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -200,3 +201,15 @@ def plot_with_labels(low_dim_embs, labels):
                      ha='right',
                      va='bottom')
         plt.show()
+
+# TSNE
+tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=5000)
+
+plot_only = 2000
+low_dim_embs = tsne.fit_transform(final_embeddings[:plot_only, :])
+
+labels = [vocabulary[i] for i in range(plot_only)]
+plot_with_labels(low_dim_embs, labels)
+plot_with_labels(low_dim_embs, labels)
+plt.xlim(-10,10)
+plt.ylim(-10,10)
