@@ -200,7 +200,7 @@ def plot_with_labels(low_dim_embs, labels):
                      textcoords='offset points',
                      ha='right',
                      va='bottom')
-        plt.show()
+    plt.show()
 
 # TSNE
 tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=5000)
